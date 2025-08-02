@@ -22,8 +22,58 @@ def emotion_detector(text_to_analyse):
         # Send POST request to Watson NLP API
         response = requests.post(url, json=input_json, headers=headers)
         
-        # Return the text attribute of the response object
-        return response.text
+        # Convert response text to dictionary
+        response_dict = json.loads(response.text)
+        
+        # Extract emotion predictions from the response
+        emotions = response_dict['emotionPredictions'][0]['emotion']
+        
+        # Extract required emotions with their scores
+        anger_score = emotions.get('anger', 0)
+        disgust_score = emotions.get('disgust', 0)
+        fear_score = emotions.get('fear', 0)
+        joy_score = emotions.get('joy', 0)
+        sadness_score = emotions.get('sadness', 0)
+        
+        # Create emotion scores dictionary
+        emotion_scores = {
+            'anger': anger_score,
+            'disgust': disgust_score,
+            'fear': fear_score,
+            'joy': joy_score,
+            'sadness': sadness_score
+        }
+        
+        # Find the dominant emotion (emotion with highest score)
+        dominant_emotion = max(emotion_scores, key=emotion_scores.get)
+        
+        # Return formatted output
+        return {
+            'anger': anger_score,
+            'disgust': disgust_score,
+            'fear': fear_score,
+            'joy': joy_score,
+            'sadness': sadness_score,
+            'dominant_emotion': dominant_emotion
+        }
+        
     except requests.exceptions.RequestException as e:
         # Handle connection errors gracefully
-        return f"Error connecting to Watson NLP service: {str(e)}"
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
+    except (json.JSONDecodeError, KeyError) as e:
+        # Handle JSON parsing or key errors
+        return {
+            'anger': None,
+            'disgust': None,
+            'fear': None,
+            'joy': None,
+            'sadness': None,
+            'dominant_emotion': None
+        }
